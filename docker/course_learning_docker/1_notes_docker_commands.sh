@@ -137,3 +137,41 @@ CMD ["ls", "-l"] # what is mostly used, if there are arguments, command get repl
 # CMD and ENTRYPOINT has two forms from used above is called exec form
 # shell form will give full shell command, e.g., CMD nano notes.txt
 # exec form is slightly efficient since it directly invokes the program not surrounded by shell
+
+
+
+
+####Docker uses 
+# cgourps to contain process, namespaces to container network and copy-on-write fs to build images
+# all above were used for long time, now docker makes it easier.
+# client and server need not run on the same server.
+
+#Layers of network Ethernet -> IP layer -> routing -> ports
+
+#Docker uses bridges to create virtual network - |||ler to switches -> control ethernet layer
+# apt instal bridge-utiles; bridge show; #shows bridges - each network on docker has a bridge
+docker run it --net=host alpine bash # --net=host turns off network protection for host.
+
+#exposing the ports creats port forwarding as below
+# ip-tables is used for firewall rules to create NAT
+docker run -ti --rm --net=host --privileged=true ubuntu bash
+# --privileged=true give docker container control over host
+sudo iptables -n -L -t nat # to inspect port forwading i.e., routing for docker
+
+#namespaces privides network isolations in linux - used for isolating containers networking
+
+#Evry process in linux comes from process init
+docker inspect --format '{{.State.Pid}}' hello #gives main process pid for container hello
+
+#Unix storage -> Storage devices -> Logical storage devices -> fs
+#FUSE filesystems programs can pretend to be filse 
+#COWs -> copy-on-write: layers of files, on write creates copy of original with new content.
+#It is possible to run out of layers, if host created docker has storage devies which allows
+# more fs layers than where the container will run
+#VFS, you can mount a device or other part of fs on a given path.
+mount -o bind other-work work #binds other-work to work dir, content of work are not deleted
+unmount work # removes other-work mount uncovering contents of preexisted work
+
+docker save -o my-images.tar.gz dabian:sid busybox ubuntu:14.04 #Saves listed 3 images to .gz file
+docker load -i my-images.tar.gz # loads images stored on files
+
