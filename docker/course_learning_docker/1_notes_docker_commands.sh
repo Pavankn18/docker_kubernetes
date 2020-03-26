@@ -1,3 +1,4 @@
+#### Docker commands
 docker ps -a
 docker images
 docker run image_tag/image_id
@@ -97,10 +98,42 @@ docker run -it --volumes-from s1 ubuntu bash
 
 ##Registery
 docker search ubuntu # this will search ubuntu on regestry.
-docker login # Login to conneted regestry - default is hub.docker.command
+docker login # Login to conneted reges	-Qtry - default is hub.docker.command
 docker push <image>
 
 # Good practice
 # Clean up your images regularly - to make sure image is available on regestry
 # verify trust
-# 
+
+
+
+
+
+
+
+#### Building custom docker images
+docker build -t <image_tag_for_buily_image> . # use Dockerfile and rsources from current folder
+
+# Exmple syntax:
+FROM alpine:latest as tmp
+MAINTAINER firstName lastName <email@s.com>
+ADD run.sh /run.sh # copies file run.sh from local to /run.sh
+ADD proj.tar.gz /install/  #extracts proj.tar.gz to /install/
+RUN ls -l | wc -l > /filecount.txt #runs the give command in container
+
+FROM alpine #this will create new base image instead one from last step
+COPY --from=tmp /filecount.txt /files.txt #copies /filecount.txt from tmp to /files.txt on current container
+ADD https://x.com/file /project/ # downloads file from the url to /project/
+ENV db_host=db.prod.com # sets db_host for remainder of steps and in running container
+EXPOSE 8080 # exposes port 8080
+VOLUME ["/host/path", "/container/path/"] #mountes /host/path on host to container at /container/path
+#Avoid using shared folders/files
+VOLUME ["/shared-data"] # Creates ephimeral volume/bookmark
+WORKDIR /opt # this will change pwd to /opt for rest of the steps and on final container.
+USER arthur # runs rest of the commands as user arthur
+ENTRYPOINT ["ls"] # arguments during docker run will be added to the command in ENTRYPOINT
+CMD ["ls", "-l"] # what is mostly used, if there are arguments, command get replaced
+
+# CMD and ENTRYPOINT has two forms from used above is called exec form
+# shell form will give full shell command, e.g., CMD nano notes.txt
+# exec form is slightly efficient since it directly invokes the program not surrounded by shell
